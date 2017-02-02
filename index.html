@@ -1,0 +1,31 @@
+<div id="body">
+{{name}}
+<input type="text" :id='name' :name="name" v-model="name" />
+<button @click="envia()">enviar</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.js"></script>
+
+
+<script>
+var conn = new WebSocket('ws://localhost:8080');
+conn.onopen = function(e) {
+    console.log("Connection established!");
+};
+conn.onmessage = function(ev){
+  console.log(ev.data);
+}
+
+new Vue({
+  'el':'#body',
+  data() {
+    return {
+      'name':''
+    }
+  },
+  methods:{
+    envia: ()=> conn.send(this.name)
+  }
+
+})
+</script>
