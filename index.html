@@ -1,31 +1,75 @@
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
 <div id="body">
-{{name}}
-<input type="text" :id='name' :name="name" v-model="name" />
-<button @click="envia()">enviar</button>
+  <p>
+    <label>Seu Nome: </label>
+      <input type="text" :id='from' :name="from" v-model="from" />
+    </p>
+<p>
+  <label>MSG: </label>
+  <input type="text" :id='name' :name="name" v-model="name" />
+  <button @click="envia()">enviar</button>
+</p>
+
+<hr>
+<ul id="example-1">
+  <li v-for="dado in list">
+    <div v-html="dado.msg"></div>
+  </li>
+</ul>
+
 </div>
 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.js"></script>
-
-
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
 <script>
-var conn = new WebSocket('ws://localhost:8080');
-conn.onopen = function(e) {
-    console.log("Connection established!");
-};
-conn.onmessage = function(ev){
-  console.log(ev.data);
-}
+var conn = new WebSocket('ws://192.168.0.97:8080');
+var msg = '';
 
-new Vue({
+
+var vm = new Vue({
   'el':'#body',
   data() {
     return {
-      'name':''
+      'name':'',
+      'msg':'',
+      'from':'',
+      'dados':[],
+      'itens':[]
+    }
+  },
+  computed:{
+    list(){
+       return _.orderBy(this.dados,['time'],['desc'])
     }
   },
   methods:{
-    envia: ()=> conn.send(this.name)
+    envia:function(){
+      var data = {"msg":this.name,"from":this.from};
+      conn.send( JSON.stringify(data));
+
+  },
+    mensagem:function(value,tempo){
+       this.msg += value+"<br>";
+       this.dados.push({'time':tempo,'msg':value});
+    }
+
   }
 
 })
+
+conn.onopen = function(e) {
+    console.log("Connection established!");
+};
+
+
+
+conn.onmessage = function(ev){
+var data = JSON.parse(ev.data);
+  console.log(ev);
+  vm.mensagem("<label class='label label-info'>"+data.from+"</label><p class='well'>"+data.msg+"</p>",ev.timeStamp);
+}
+
+
 </script>
